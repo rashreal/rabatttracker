@@ -70,7 +70,12 @@
 						{/if}
 					</div>
 					<p class="hint" style="margin-top: 0.2rem">
-						Gültig: {formatDateRange(item.currentOffers[0].validFrom, item.currentOffers[0].validTo)}
+						Gültig: <strong
+							>{formatDateRange(
+								item.currentOffers[0].validFrom,
+								item.currentOffers[0].validTo
+							)}</strong
+						>
 						{#if daysUntil(item.currentOffers[0].validFrom) > 0}
 							<strong>(startet erst in {daysUntil(item.currentOffers[0].validFrom)} Tagen)</strong>
 						{/if}

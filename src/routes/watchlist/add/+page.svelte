@@ -218,7 +218,7 @@
 					{#if group.retailerCount > 1}(+{group.retailerCount - 1} weitere Händler aktuell){/if}
 				</div>
 				<div class="hint">
-					Gültig: {formatDateRange(group.sample.validFrom, group.sample.validTo)}
+					Gültig: <strong>{formatDateRange(group.sample.validFrom, group.sample.validTo)}</strong>
 					{#if daysUntil(group.sample.validFrom) > 0}
 						<strong>(startet erst in {daysUntil(group.sample.validFrom)} Tagen)</strong>
 					{/if}
