@@ -1,6 +1,6 @@
 import type { PageServerLoad } from './$types';
-import { listWatchedProducts } from '$lib/server/watchlist';
+import { getFeed } from '$lib/server/feed';
 
 export const load: PageServerLoad = async () => {
-	return { watchlist: listWatchedProducts() };
+	return { feed: getFeed() };
 };

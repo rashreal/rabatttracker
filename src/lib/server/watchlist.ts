@@ -8,6 +8,10 @@ export function listWatchedProducts(): WatchedProduct[] {
 	return db.select().from(watchedProducts).orderBy(desc(watchedProducts.createdAt)).all();
 }
 
+export function getWatchedProduct(id: number): WatchedProduct | undefined {
+	return db.select().from(watchedProducts).where(eq(watchedProducts.id, id)).get();
+}
+
 export interface NewWatchedProduct {
 	displayName: string;
 	matchQuery: string;
