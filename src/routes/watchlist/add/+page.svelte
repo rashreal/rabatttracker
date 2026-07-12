@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { formatDateRange, daysUntil } from '$lib/format';
+
 	interface SearchResult {
 		sourceOfferId: string;
 		sourceProductId: number | null;
@@ -8,6 +10,8 @@
 		retailerName: string;
 		priceCents: number;
 		unitText: string | null;
+		validFrom: string;
+		validTo: string;
 	}
 
 	interface ProductGroup {
@@ -212,6 +216,12 @@
 				<div class="hint">
 					Referenz: {(group.sample.priceCents / 100).toFixed(2)} € bei {group.sample.retailerName}
 					{#if group.retailerCount > 1}(+{group.retailerCount - 1} weitere Händler aktuell){/if}
+				</div>
+				<div class="hint">
+					Gültig: {formatDateRange(group.sample.validFrom, group.sample.validTo)}
+					{#if daysUntil(group.sample.validFrom) > 0}
+						<strong>(startet erst in {daysUntil(group.sample.validFrom)} Tagen)</strong>
+					{/if}
 				</div>
 				<div class="hint">
 					Wird danach bei <strong>jedem</strong> Händler in deinem Umkreis beobachtet, nicht nur bei

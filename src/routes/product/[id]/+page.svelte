@@ -11,6 +11,7 @@
 		CategoryScale
 	} from 'chart.js';
 	import type { PageData } from './$types';
+	import { formatDateRange } from '$lib/format';
 
 	ChartJS.register(Title, Tooltip, Legend, LineElement, LinearScale, PointElement, CategoryScale);
 
@@ -117,7 +118,7 @@
 							<td>{o.retailerName}</td>
 							<td>{formatEuro(o.priceCents)}</td>
 							<td class="hint">{o.unitPriceText ?? o.description ?? '–'}</td>
-							<td>{o.validFrom} – {o.validTo}</td>
+							<td>{formatDateRange(o.validFrom, o.validTo)}</td>
 						</tr>
 					{/each}
 				</tbody>

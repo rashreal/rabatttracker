@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
+	import { formatDateRange, daysUntil } from '$lib/format';
 
 	let { data }: { data: PageData } = $props();
 	let feed = $state(data.feed);
@@ -68,6 +69,12 @@
 							<span class="hint">+{item.currentOffers.length - 1} weitere Angebote</span>
 						{/if}
 					</div>
+					<p class="hint" style="margin-top: 0.2rem">
+						Gültig: {formatDateRange(item.currentOffers[0].validFrom, item.currentOffers[0].validTo)}
+						{#if daysUntil(item.currentOffers[0].validFrom) > 0}
+							<strong>(startet erst in {daysUntil(item.currentOffers[0].validFrom)} Tagen)</strong>
+						{/if}
+					</p>
 					{#if item.currentOffers[0].description}
 						<p class="hint" style="margin-top: 0.2rem">{item.currentOffers[0].description}</p>
 					{/if}
