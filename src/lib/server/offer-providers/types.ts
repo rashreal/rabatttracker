@@ -19,6 +19,7 @@ export interface OfferResult {
 export interface ProductMatcher {
 	query: string;
 	productId: number | null;
+	brand: string | null;
 	descriptionKey: string;
 }
 

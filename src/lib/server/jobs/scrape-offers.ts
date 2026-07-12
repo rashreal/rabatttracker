@@ -36,6 +36,7 @@ export async function runScrapeJob(): Promise<ScrapeRunSummary> {
 					{
 						query: product.matchQuery,
 						productId: product.matchProductId,
+						brand: product.matchBrand,
 						descriptionKey: product.matchDescriptionKey
 					},
 					settings.homeZipCode

@@ -136,11 +136,24 @@ export const marktguruProvider: OfferProvider = {
 	async fetchOffersForProduct(matcher: ProductMatcher, zipCode: string) {
 		const offers = await searchRaw(matcher.query, zipCode, 100);
 
+		// Preferred: match on Marktguru's stable catalog product id (set when the
+		// product was picked from an active offer at add-time).
 		if (matcher.productId != null) {
 			return offers.filter((o) => o.sourceProductId === matcher.productId);
 		}
-		return offers.filter(
-			(o) => descriptionKeyFor(o.brand, o.productName) === matcher.descriptionKey
-		);
+
+		// No product id (product was added manually, without a currently active
+		// offer to pin it to): fall back to a brand match, which is far more
+		// forgiving than an exact description-text match - a manually-typed
+		// product name will rarely equal Marktguru's exact internal wording.
+		if (matcher.brand) {
+			const brandLower = matcher.brand.toLowerCase().trim();
+			const byBrand = offers.filter((o) => o.brand?.toLowerCase().trim() === brandLower);
+			if (byBrand.length > 0) return byBrand;
+		}
+
+		// No brand either, or no offers matched that brand: trust Marktguru's own
+		// search relevance for the query rather than returning nothing.
+		return offers;
 	}
 };

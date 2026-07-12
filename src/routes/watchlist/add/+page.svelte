@@ -28,6 +28,12 @@
 	let addedKeys = $state(new Set<string>());
 	let addingKey = $state('');
 
+	let manualName = $state('');
+	let manualBrand = $state('');
+	let manualAdding = $state(false);
+	let manualAdded = $state(false);
+	let manualError = $state('');
+
 	function groupResults(results: SearchResult[]): ProductGroup[] {
 		const map = new Map<string, ProductGroup>();
 		for (const r of results) {
@@ -96,6 +102,35 @@
 			addingKey = '';
 		}
 	}
+
+	async function addManual() {
+		if (!manualName.trim()) {
+			manualError = 'Produktname ist erforderlich.';
+			return;
+		}
+		manualAdding = true;
+		manualError = '';
+		try {
+			const res = await fetch('/api/watchlist', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					displayName: manualName.trim(),
+					matchQuery: manualName.trim(),
+					matchBrand: manualBrand.trim() || null,
+					matchProductId: null
+				})
+			});
+			if (!res.ok) throw new Error('Hinzufügen fehlgeschlagen');
+			manualAdded = true;
+			manualName = '';
+			manualBrand = '';
+		} catch (e) {
+			manualError = e instanceof Error ? e.message : 'Fehler beim Hinzufügen';
+		} finally {
+			manualAdding = false;
+		}
+	}
 </script>
 
 <svelte:head>
@@ -125,9 +160,11 @@
 			{/each}
 		</div>
 		<p class="hint">
-			Die Suche fragt live die Marktguru-Angebote für deine eingestellte PLZ ab. Funktioniert nur,
-			wenn dein Standort in den <a href="/settings">Einstellungen</a> gesetzt ist und dieser Server
-			echten Internetzugriff auf marktguru.de hat.
+			Die Suche fragt live die Marktguru-<em>Angebote</em> für deine eingestellte PLZ ab (nur
+			Produkte, die gerade irgendwo im Angebot sind - ein allgemeiner Produktkatalog steht nicht
+			zur Verfügung). Funktioniert nur, wenn dein Standort in den <a href="/settings"
+				>Einstellungen</a
+			> gesetzt ist und dieser Server echten Internetzugriff auf marktguru.de hat.
 		</p>
 	</section>
 
@@ -141,8 +178,12 @@
 				<strong>{group.productName}</strong>
 				{#if group.brand}<span class="hint"> · {group.brand}</span>{/if}
 				<div class="hint">
-					{(group.sample.priceCents / 100).toFixed(2)} € bei {group.sample.retailerName}
-					{#if group.retailerCount > 1}(+{group.retailerCount - 1} weitere){/if}
+					Referenz: {(group.sample.priceCents / 100).toFixed(2)} € bei {group.sample.retailerName}
+					{#if group.retailerCount > 1}(+{group.retailerCount - 1} weitere Händler aktuell){/if}
+				</div>
+				<div class="hint">
+					Wird danach bei <strong>jedem</strong> Händler in deinem Umkreis beobachtet, nicht nur bei
+					{group.sample.retailerName}.
 				</div>
 			</div>
 			{#if addedKeys.has(group.key)}
@@ -158,4 +199,36 @@
 			{/if}
 		</div>
 	{/each}
+
+	<section class="card">
+		<h2>Ohne aktuelles Angebot hinzufügen</h2>
+		<p class="hint">
+			Produkt gerade nirgends im Angebot? Trag Name (und wenn bekannt die Marke) direkt ein - du
+			wirst benachrichtigt, sobald es das erste Mal bei einem Händler in deinem Umkreis auftaucht.
+			Die Zuordnung ist dabei etwas unschärfer als bei der Suche oben (kein exakter Katalog-Treffer),
+			funktioniert aber in der Regel gut, wenn Marke und Name einigermaßen zum tatsächlichen
+			Produktnamen passen.
+		</p>
+		<div class="field-row">
+			<div>
+				<label for="manualName">Produktname</label>
+				<input id="manualName" type="text" bind:value={manualName} placeholder="z.B. Skyr Natur" />
+			</div>
+			<div>
+				<label for="manualBrand">Marke (optional)</label>
+				<input id="manualBrand" type="text" bind:value={manualBrand} placeholder="z.B. Arla" />
+			</div>
+		</div>
+		<div class="field-row" style="margin-top: 0.75rem">
+			<button class="primary" onclick={addManual} disabled={manualAdding}>
+				{manualAdding ? '…' : '+ Beobachten'}
+			</button>
+		</div>
+		{#if manualAdded}
+			<p class="hint" style="color: var(--good)">Hinzugefügt.</p>
+		{/if}
+		{#if manualError}
+			<p class="hint" style="color: var(--bad)">{manualError}</p>
+		{/if}
+	</section>
 </div>
