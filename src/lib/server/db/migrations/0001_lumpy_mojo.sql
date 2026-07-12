@@ -1,0 +1,1 @@
+ALTER TABLE `watched_products` ADD `match_product_id` integer;

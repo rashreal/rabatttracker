@@ -5,6 +5,9 @@ export const watchedProducts = sqliteTable('watched_products', {
 	displayName: text('display_name').notNull(),
 	matchQuery: text('match_query').notNull(),
 	matchBrand: text('match_brand'),
+	// Marktguru's stable catalog product id (offer.product.id), used to recognize
+	// the same product across scrape runs even though offer.id changes per leaflet.
+	matchProductId: integer('match_product_id'),
 	matchDescriptionKey: text('match_description_key').notNull(),
 	active: integer('active', { mode: 'boolean' }).notNull().default(true),
 	createdAt: text('created_at')
