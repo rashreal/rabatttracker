@@ -17,9 +17,94 @@
 	let locating = $state(false);
 	let saving = $state(false);
 	let scraping = $state(false);
+	let subscribingPush = $state(false);
+	let sendingTestPush = $state(false);
+	let pushSubscribed = $state(false);
+	let pushSupported = $state(false);
 	let lastScrapeRun = $state(data.lastScrapeRun);
 	let statusMessage = $state('');
 	let statusIsError = $state(false);
+
+	$effect(() => {
+		pushSupported = 'serviceWorker' in navigator && 'PushManager' in window;
+		if (pushSupported) {
+			navigator.serviceWorker
+				.getRegistration()
+				.then((reg) => reg?.pushManager.getSubscription())
+				.then((sub) => (pushSubscribed = !!sub))
+				.catch(() => {});
+		}
+	});
+
+	function urlBase64ToUint8Array(base64String: string): Uint8Array {
+		const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+		const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+		const rawData = atob(base64);
+		return Uint8Array.from([...rawData].map((c) => c.charCodeAt(0)));
+	}
+
+	async function enablePush() {
+		subscribingPush = true;
+		showStatus('');
+		try {
+			if (!pushSupported) {
+				throw new Error('Push wird von diesem Browser nicht unterstützt.');
+			}
+			const permission = await Notification.requestPermission();
+			if (permission !== 'granted') {
+				throw new Error('Benachrichtigungs-Berechtigung wurde nicht erteilt.');
+			}
+
+			const keyRes = await fetch('/api/push/public-key');
+			const { publicKey } = await keyRes.json();
+			if (!publicKey) {
+				throw new Error(
+					'Server hat keinen VAPID-Public-Key konfiguriert (siehe .env / README).'
+				);
+			}
+
+			const reg = await navigator.serviceWorker.register('/service-worker.js');
+			await navigator.serviceWorker.ready;
+			const sub = await reg.pushManager.subscribe({
+				userVisibleOnly: true,
+				applicationServerKey: urlBase64ToUint8Array(publicKey) as BufferSource
+			});
+			const subJson = sub.toJSON();
+
+			await fetch('/api/push/subscribe', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					endpoint: subJson.endpoint,
+					keys: subJson.keys,
+					deviceLabel: navigator.userAgent.slice(0, 80)
+				})
+			});
+
+			pushSubscribed = true;
+			notificationEnabled = true;
+			showStatus('Push-Benachrichtigungen aktiviert.');
+		} catch (e) {
+			showStatus(e instanceof Error ? e.message : 'Aktivierung fehlgeschlagen', true);
+		} finally {
+			subscribingPush = false;
+		}
+	}
+
+	async function sendTestPush() {
+		sendingTestPush = true;
+		showStatus('');
+		try {
+			const res = await fetch('/api/push/test', { method: 'POST' });
+			if (!res.ok) throw new Error((await res.json()).message ?? 'Test-Push fehlgeschlagen');
+			const result = await res.json();
+			showStatus(`Test-Push gesendet an ${result.sent} Gerät(e).`);
+		} catch (e) {
+			showStatus(e instanceof Error ? e.message : 'Test-Push fehlgeschlagen', true);
+		} finally {
+			sendingTestPush = false;
+		}
+	}
 
 	async function runScrapeNow() {
 		scraping = true;
@@ -183,10 +268,24 @@
 				<input id="threshold" type="number" min="1" max="90" bind:value={priceDropThresholdPct} />
 			</div>
 		{/if}
-		<p class="hint">
-			Push-Benachrichtigungen selbst (Browser/iPhone) werden separat aktiviert, sobald das
-			eingerichtet ist.
-		</p>
+
+		<div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border)">
+			{#if pushSubscribed}
+				<p class="hint">✅ Push-Benachrichtigungen sind auf diesem Gerät aktiviert.</p>
+				<button onclick={sendTestPush} disabled={sendingTestPush}>
+					{sendingTestPush ? 'Sende…' : 'Test-Push senden'}
+				</button>
+			{:else}
+				<button class="primary" onclick={enablePush} disabled={subscribingPush}>
+					{subscribingPush ? 'Aktiviere…' : '🔔 Push-Benachrichtigungen auf diesem Gerät aktivieren'}
+				</button>
+			{/if}
+			<p class="hint" style="margin-top: 0.5rem">
+				Auf dem iPhone funktioniert das nur, wenn die App vorher über <em>Teilen → Zum
+				Home-Bildschirm</em> zum Home-Bildschirm hinzugefügt und von dort geöffnet wurde (iOS 16.4+),
+				und die Seite über HTTPS erreichbar ist.
+			</p>
+		</div>
 	</section>
 
 	<section class="card">

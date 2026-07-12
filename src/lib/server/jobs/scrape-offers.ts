@@ -4,6 +4,7 @@ import { watchedProducts, scrapeRuns } from '../db/schema';
 import { activeOfferProvider } from '../offer-providers';
 import { getSettings } from '../settings';
 import { recordOffers } from '../price-observations';
+import { maybeNotify } from '../alerting';
 
 export interface ScrapeRunSummary {
 	success: boolean;
@@ -40,6 +41,7 @@ export async function runScrapeJob(): Promise<ScrapeRunSummary> {
 				);
 				const inserted = recordOffers(product.id, offers, settings.homeZipCode);
 				offersIngested += inserted.length;
+				await maybeNotify(product, inserted, settings);
 			} catch (e) {
 				errors.push(`${product.displayName}: ${e instanceof Error ? e.message : 'Fehler'}`);
 			}
