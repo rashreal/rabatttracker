@@ -1,7 +1,10 @@
 import type { OfferProvider, OfferResult, ProductMatcher } from './types';
 
 const HOME_URL = 'https://marktguru.de';
-const API_BASE_URL = 'https://api.marktguru.de/api/v1';
+// Trailing slash matters: new URL('offers/search', base) drops the last path
+// segment of base if it doesn't end in "/", which silently turned this into
+// https://api.marktguru.de/api/offers/search (missing /v1/, 404) before.
+const API_BASE_URL = 'https://api.marktguru.de/api/v1/';
 const BROWSER_USER_AGENT =
 	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
 
