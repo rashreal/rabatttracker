@@ -19,22 +19,30 @@
 		retailerCount: number;
 	}
 
-	const quickSearches = ['Arla Skyr', 'Rosbacher Mineralwasser', 'Vitalis Schokomüsli'];
+	const quickFills = [
+		{ name: 'Skyr', brand: 'Arla' },
+		{ name: 'Mineralwasser', brand: 'Rosbacher' },
+		{ name: 'Schokomüsli', brand: 'Vitalis' }
+	];
 
-	let query = $state('');
+	let name = $state('');
+	let brand = $state('');
+	let sizeHint = $state('');
+
 	let searching = $state(false);
 	let searchError = $state('');
 	let groups = $state<ProductGroup[]>([]);
 	let addedKeys = $state(new Set<string>());
 	let addingKey = $state('');
 
-	let sizeHint = $state('');
-
-	let manualName = $state('');
-	let manualBrand = $state('');
 	let manualAdding = $state(false);
 	let manualAdded = $state(false);
 	let manualError = $state('');
+
+	function applyQuickFill(qf: { name: string; brand: string }) {
+		name = qf.name;
+		brand = qf.brand;
+	}
 
 	function groupResults(results: SearchResult[]): ProductGroup[] {
 		const map = new Map<string, ProductGroup>();
@@ -60,14 +68,21 @@
 		return [...map.values()];
 	}
 
-	async function runSearch(q: string) {
-		query = q;
-		if (!q.trim()) return;
+	async function runSearch() {
+		if (!name.trim() && !brand.trim()) {
+			searchError = 'Bitte Produktname oder Marke eingeben.';
+			return;
+		}
 		searching = true;
 		searchError = '';
+		manualAdded = false;
 		groups = [];
 		try {
-			const res = await fetch(`/api/marktguru/search?q=${encodeURIComponent(q.trim())}`);
+			const q = [brand, name]
+				.map((s) => s.trim())
+				.filter(Boolean)
+				.join(' ');
+			const res = await fetch(`/api/marktguru/search?q=${encodeURIComponent(q)}`);
 			if (!res.ok) {
 				const body = await res.json().catch(() => ({ message: 'Suche fehlgeschlagen' }));
 				throw new Error(body.message ?? 'Suche fehlgeschlagen');
@@ -82,7 +97,7 @@
 		}
 	}
 
-	async function addProduct(group: ProductGroup) {
+	async function addFromSearch(group: ProductGroup) {
 		addingKey = group.key;
 		try {
 			const res = await fetch('/api/watchlist', {
@@ -90,7 +105,7 @@
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					displayName: group.productName,
-					matchQuery: query.trim(),
+					matchQuery: [brand, name].map((s) => s.trim()).filter(Boolean).join(' '),
 					matchBrand: group.brand,
 					matchProductId: group.sourceProductId,
 					matchDescriptionKey: `${(group.brand ?? '').toLowerCase()}|${group.productName.toLowerCase()}`,
@@ -99,7 +114,6 @@
 			});
 			if (!res.ok) throw new Error('Hinzufügen fehlgeschlagen');
 			addedKeys = new Set([...addedKeys, group.key]);
-			sizeHint = '';
 		} catch (e) {
 			searchError = e instanceof Error ? e.message : 'Fehler beim Hinzufügen';
 		} finally {
@@ -108,7 +122,7 @@
 	}
 
 	async function addManual() {
-		if (!manualName.trim()) {
+		if (!name.trim()) {
 			manualError = 'Produktname ist erforderlich.';
 			return;
 		}
@@ -119,18 +133,15 @@
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
-					displayName: manualName.trim(),
-					matchQuery: manualName.trim(),
-					matchBrand: manualBrand.trim() || null,
+					displayName: name.trim(),
+					matchQuery: name.trim(),
+					matchBrand: brand.trim() || null,
 					matchProductId: null,
 					matchSizeHint: sizeHint.trim() || null
 				})
 			});
 			if (!res.ok) throw new Error('Hinzufügen fehlgeschlagen');
 			manualAdded = true;
-			manualName = '';
-			manualBrand = '';
-			sizeHint = '';
 		} catch (e) {
 			manualError = e instanceof Error ? e.message : 'Fehler beim Hinzufügen';
 		} finally {
@@ -147,37 +158,45 @@
 	<h1>Produkt hinzufügen</h1>
 
 	<section class="card">
-		<label for="q">Produkt suchen</label>
 		<div class="field-row">
-			<input
-				id="q"
-				type="text"
-				bind:value={query}
-				placeholder="z.B. Arla Skyr"
-				onkeydown={(e) => e.key === 'Enter' && runSearch(query)}
-			/>
-			<button class="primary" onclick={() => runSearch(query)} disabled={searching}>
-				{searching ? 'Suche…' : 'Suchen'}
-			</button>
-		</div>
-		<div class="field-row" style="margin-top: 0.6rem; flex-wrap: wrap">
-			{#each quickSearches as q (q)}
-				<button onclick={() => runSearch(q)} disabled={searching}>{q}</button>
-			{/each}
+			<div>
+				<label for="name">Produktname</label>
+				<input id="name" type="text" bind:value={name} placeholder="z.B. Skyr" />
+			</div>
+			<div>
+				<label for="brand">Marke (optional)</label>
+				<input id="brand" type="text" bind:value={brand} placeholder="z.B. Arla" />
+			</div>
 		</div>
 		<div style="margin-top: 0.75rem; max-width: 260px">
 			<label for="sizeHint">Größe (optional, nur zur eigenen Erinnerung)</label>
 			<input id="sizeHint" type="text" bind:value={sizeHint} placeholder="z.B. 1 kg oder 12x1L" />
 		</div>
+		<div class="field-row" style="margin-top: 0.6rem; flex-wrap: wrap">
+			{#each quickFills as qf (qf.name)}
+				<button onclick={() => applyQuickFill(qf)}>{qf.brand} {qf.name}</button>
+			{/each}
+		</div>
+		<div class="field-row" style="margin-top: 0.75rem">
+			<button onclick={runSearch} disabled={searching}>
+				{searching ? 'Suche…' : '🔍 Vorschläge suchen'}
+			</button>
+			<button class="primary" onclick={addManual} disabled={manualAdding}>
+				{manualAdding ? '…' : '+ Direkt beobachten (ohne Suche)'}
+			</button>
+		</div>
 		<p class="hint">
-			Die Suche fragt live die Marktguru-<em>Angebote</em> für deine eingestellte PLZ ab (nur
-			Produkte, die gerade irgendwo im Angebot sind - ein allgemeiner Produktkatalog steht nicht
-			zur Verfügung). Funktioniert nur, wenn dein Standort in den <a href="/settings"
-				>Einstellungen</a
-			> gesetzt ist und dieser Server echten Internetzugriff auf marktguru.de hat. Die tatsächliche
-			Packungsgröße pro Angebot wird unten bei den Treffern angezeigt, falls Marktguru sie
-			mitliefert.
+			<strong>Vorschläge suchen</strong> zeigt dir passende Produkte aus Marktguru's aktuellen Angeboten
+			zum Anklicken. <strong>Direkt beobachten</strong> speichert Name/Marke ohne Suche - nützlich,
+			wenn das Produkt gerade nirgends im Angebot ist (die Zuordnung beim Abgleich ist dann etwas
+			unschärfer, siehe Marke).
 		</p>
+		{#if manualAdded}
+			<p class="hint" style="color: var(--good)">Direkt hinzugefügt.</p>
+		{/if}
+		{#if manualError}
+			<p class="hint" style="color: var(--bad)">{manualError}</p>
+		{/if}
 	</section>
 
 	{#if searchError}
@@ -204,7 +223,7 @@
 			{:else}
 				<button
 					class="primary"
-					onclick={() => addProduct(group)}
+					onclick={() => addFromSearch(group)}
 					disabled={addingKey === group.key}
 				>
 					{addingKey === group.key ? '…' : '+ Beobachten'}
@@ -212,45 +231,4 @@
 			{/if}
 		</div>
 	{/each}
-
-	<section class="card">
-		<h2>Ohne aktuelles Angebot hinzufügen</h2>
-		<p class="hint">
-			Produkt gerade nirgends im Angebot? Trag Name (und wenn bekannt die Marke) direkt ein - du
-			wirst benachrichtigt, sobald es das erste Mal bei einem Händler in deinem Umkreis auftaucht.
-			Die Zuordnung ist dabei etwas unschärfer als bei der Suche oben (kein exakter Katalog-Treffer),
-			funktioniert aber in der Regel gut, wenn Marke und Name einigermaßen zum tatsächlichen
-			Produktnamen passen.
-		</p>
-		<div class="field-row">
-			<div>
-				<label for="manualName">Produktname</label>
-				<input id="manualName" type="text" bind:value={manualName} placeholder="z.B. Skyr Natur" />
-			</div>
-			<div>
-				<label for="manualBrand">Marke (optional)</label>
-				<input id="manualBrand" type="text" bind:value={manualBrand} placeholder="z.B. Arla" />
-			</div>
-		</div>
-		<div style="margin-top: 0.75rem; max-width: 260px">
-			<label for="manualSizeHint">Größe (optional, nur zur eigenen Erinnerung)</label>
-			<input
-				id="manualSizeHint"
-				type="text"
-				bind:value={sizeHint}
-				placeholder="z.B. 450 g oder 12x1L"
-			/>
-		</div>
-		<div class="field-row" style="margin-top: 0.75rem">
-			<button class="primary" onclick={addManual} disabled={manualAdding}>
-				{manualAdding ? '…' : '+ Beobachten'}
-			</button>
-		</div>
-		{#if manualAdded}
-			<p class="hint" style="color: var(--good)">Hinzugefügt.</p>
-		{/if}
-		{#if manualError}
-			<p class="hint" style="color: var(--bad)">{manualError}</p>
-		{/if}
-	</section>
 </div>
