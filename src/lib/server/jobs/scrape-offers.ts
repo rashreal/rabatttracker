@@ -5,6 +5,7 @@ import { activeOfferProvider } from '../offer-providers';
 import { getSettings } from '../settings';
 import { recordOffers } from '../price-observations';
 import { maybeNotify } from '../alerting';
+import { describeError } from '../error-utils';
 
 export interface ScrapeRunSummary {
 	success: boolean;
@@ -43,7 +44,8 @@ export async function runScrapeJob(): Promise<ScrapeRunSummary> {
 				offersIngested += inserted.length;
 				await maybeNotify(product, inserted, settings);
 			} catch (e) {
-				errors.push(`${product.displayName}: ${e instanceof Error ? e.message : 'Fehler'}`);
+				console.error(`Scrape failed for watched product "${product.displayName}"`, e);
+				errors.push(`${product.displayName}: ${describeError(e)}`);
 			}
 		}
 	}
