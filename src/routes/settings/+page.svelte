@@ -16,8 +16,31 @@
 	let geocoding = $state(false);
 	let locating = $state(false);
 	let saving = $state(false);
+	let scraping = $state(false);
+	let lastScrapeRun = $state(data.lastScrapeRun);
 	let statusMessage = $state('');
 	let statusIsError = $state(false);
+
+	async function runScrapeNow() {
+		scraping = true;
+		showStatus('');
+		try {
+			const res = await fetch('/api/jobs/run-scrape', { method: 'POST' });
+			const summary = await res.json();
+			showStatus(
+				summary.success
+					? `Scrape abgeschlossen: ${summary.offersIngested} neue Angebote gespeichert.`
+					: `Scrape mit Fehlern: ${summary.errors.join('; ')}`,
+				!summary.success
+			);
+			const lastRunRes = await fetch('/api/jobs/last-run');
+			lastScrapeRun = await lastRunRes.json();
+		} catch (e) {
+			showStatus(e instanceof Error ? e.message : 'Scrape fehlgeschlagen', true);
+		} finally {
+			scraping = false;
+		}
+	}
 
 	function showStatus(message: string, isError = false) {
 		statusMessage = message;
@@ -164,6 +187,25 @@
 			Push-Benachrichtigungen selbst (Browser/iPhone) werden separat aktiviert, sobald das
 			eingerichtet ist.
 		</p>
+	</section>
+
+	<section class="card">
+		<h2>Angebots-Abgleich</h2>
+		{#if lastScrapeRun}
+			<p class="hint">
+				Letzter Lauf: {new Date(lastScrapeRun.startedAt).toLocaleString('de-DE')} ·
+				{lastScrapeRun.success ? '✅ erfolgreich' : '⚠️ mit Fehlern'} ·
+				{lastScrapeRun.offersIngestedCount} neue Angebote
+				{#if lastScrapeRun.errorMessage}
+					<br /><span style="color: var(--bad)">{lastScrapeRun.errorMessage}</span>
+				{/if}
+			</p>
+		{:else}
+			<p class="hint">Noch kein Abgleich gelaufen. Läuft sonst täglich automatisch um 06:00 Uhr.</p>
+		{/if}
+		<button onclick={runScrapeNow} disabled={scraping}>
+			{scraping ? 'Läuft…' : 'Jetzt aktualisieren'}
+		</button>
 	</section>
 
 	<div class="field-row">
