@@ -28,6 +28,8 @@
 	let addedKeys = $state(new Set<string>());
 	let addingKey = $state('');
 
+	let sizeHint = $state('');
+
 	let manualName = $state('');
 	let manualBrand = $state('');
 	let manualAdding = $state(false);
@@ -91,11 +93,13 @@
 					matchQuery: query.trim(),
 					matchBrand: group.brand,
 					matchProductId: group.sourceProductId,
-					matchDescriptionKey: `${(group.brand ?? '').toLowerCase()}|${group.productName.toLowerCase()}`
+					matchDescriptionKey: `${(group.brand ?? '').toLowerCase()}|${group.productName.toLowerCase()}`,
+					matchSizeHint: sizeHint.trim() || null
 				})
 			});
 			if (!res.ok) throw new Error('Hinzufügen fehlgeschlagen');
 			addedKeys = new Set([...addedKeys, group.key]);
+			sizeHint = '';
 		} catch (e) {
 			searchError = e instanceof Error ? e.message : 'Fehler beim Hinzufügen';
 		} finally {
@@ -118,13 +122,15 @@
 					displayName: manualName.trim(),
 					matchQuery: manualName.trim(),
 					matchBrand: manualBrand.trim() || null,
-					matchProductId: null
+					matchProductId: null,
+					matchSizeHint: sizeHint.trim() || null
 				})
 			});
 			if (!res.ok) throw new Error('Hinzufügen fehlgeschlagen');
 			manualAdded = true;
 			manualName = '';
 			manualBrand = '';
+			sizeHint = '';
 		} catch (e) {
 			manualError = e instanceof Error ? e.message : 'Fehler beim Hinzufügen';
 		} finally {
@@ -159,12 +165,18 @@
 				<button onclick={() => runSearch(q)} disabled={searching}>{q}</button>
 			{/each}
 		</div>
+		<div style="margin-top: 0.75rem; max-width: 260px">
+			<label for="sizeHint">Größe (optional, nur zur eigenen Erinnerung)</label>
+			<input id="sizeHint" type="text" bind:value={sizeHint} placeholder="z.B. 1 kg oder 12x1L" />
+		</div>
 		<p class="hint">
 			Die Suche fragt live die Marktguru-<em>Angebote</em> für deine eingestellte PLZ ab (nur
 			Produkte, die gerade irgendwo im Angebot sind - ein allgemeiner Produktkatalog steht nicht
 			zur Verfügung). Funktioniert nur, wenn dein Standort in den <a href="/settings"
 				>Einstellungen</a
-			> gesetzt ist und dieser Server echten Internetzugriff auf marktguru.de hat.
+			> gesetzt ist und dieser Server echten Internetzugriff auf marktguru.de hat. Die tatsächliche
+			Packungsgröße pro Angebot wird unten bei den Treffern angezeigt, falls Marktguru sie
+			mitliefert.
 		</p>
 	</section>
 
@@ -177,6 +189,7 @@
 			<div>
 				<strong>{group.productName}</strong>
 				{#if group.brand}<span class="hint"> · {group.brand}</span>{/if}
+				{#if group.sample.unitText}<span class="hint"> · {group.sample.unitText}</span>{/if}
 				<div class="hint">
 					Referenz: {(group.sample.priceCents / 100).toFixed(2)} € bei {group.sample.retailerName}
 					{#if group.retailerCount > 1}(+{group.retailerCount - 1} weitere Händler aktuell){/if}
@@ -218,6 +231,15 @@
 				<label for="manualBrand">Marke (optional)</label>
 				<input id="manualBrand" type="text" bind:value={manualBrand} placeholder="z.B. Arla" />
 			</div>
+		</div>
+		<div style="margin-top: 0.75rem; max-width: 260px">
+			<label for="manualSizeHint">Größe (optional, nur zur eigenen Erinnerung)</label>
+			<input
+				id="manualSizeHint"
+				type="text"
+				bind:value={sizeHint}
+				placeholder="z.B. 450 g oder 12x1L"
+			/>
 		</div>
 		<div class="field-row" style="margin-top: 0.75rem">
 			<button class="primary" onclick={addManual} disabled={manualAdding}>

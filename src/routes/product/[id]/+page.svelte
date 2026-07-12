@@ -60,7 +60,11 @@
 <div class="page">
 	<a href="/">&larr; Zurück</a>
 	<h1>{data.product.displayName}</h1>
-	{#if data.product.matchBrand}<p class="hint">{data.product.matchBrand}</p>{/if}
+	{#if data.product.matchBrand || data.product.matchSizeHint}
+		<p class="hint">
+			{[data.product.matchBrand, data.product.matchSizeHint].filter(Boolean).join(' · ')}
+		</p>
+	{/if}
 
 	{#if data.indicator}
 		<section class="card">
@@ -102,6 +106,7 @@
 						<th>Datum</th>
 						<th>Händler</th>
 						<th>Preis</th>
+						<th>Menge</th>
 						<th>Gültig</th>
 					</tr>
 				</thead>
@@ -111,6 +116,7 @@
 							<td>{o.observedAt.slice(0, 10)}</td>
 							<td>{o.retailerName}</td>
 							<td>{formatEuro(o.priceCents)}</td>
+							<td class="hint">{o.unitPriceText ?? o.description ?? '–'}</td>
 							<td>{o.validFrom} – {o.validTo}</td>
 						</tr>
 					{/each}

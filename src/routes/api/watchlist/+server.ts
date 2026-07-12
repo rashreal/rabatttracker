@@ -24,13 +24,18 @@ export const POST: RequestHandler = async ({ request }) => {
 		typeof body.matchDescriptionKey === 'string' && body.matchDescriptionKey.length > 0
 			? body.matchDescriptionKey
 			: descriptionKeyFor(matchBrand, body.displayName);
+	const matchSizeHint: string | null =
+		typeof body.matchSizeHint === 'string' && body.matchSizeHint.trim().length > 0
+			? body.matchSizeHint.trim()
+			: null;
 
 	const created = addWatchedProduct({
 		displayName: body.displayName.trim(),
 		matchQuery: body.matchQuery.trim(),
 		matchBrand,
 		matchProductId,
-		matchDescriptionKey
+		matchDescriptionKey,
+		matchSizeHint
 	});
 
 	return json(created, { status: 201 });

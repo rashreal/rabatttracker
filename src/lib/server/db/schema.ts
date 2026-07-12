@@ -9,6 +9,9 @@ export const watchedProducts = sqliteTable('watched_products', {
 	// the same product across scrape runs even though offer.id changes per leaflet.
 	matchProductId: integer('match_product_id'),
 	matchDescriptionKey: text('match_description_key').notNull(),
+	// Free-text reminder of the intended pack size (e.g. "1 kg", "12x1L") - purely
+	// informational, not used for matching/filtering (see marktguru.ts comments).
+	matchSizeHint: text('match_size_hint'),
 	active: integer('active', { mode: 'boolean' }).notNull().default(true),
 	createdAt: text('created_at')
 		.notNull()
@@ -26,6 +29,7 @@ export const priceObservations = sqliteTable(
 		retailerId: text('retailer_id').notNull(),
 		priceCents: integer('price_cents').notNull(),
 		unitPriceText: text('unit_price_text'),
+		description: text('description'),
 		currency: text('currency').notNull().default('EUR'),
 		validFrom: text('valid_from').notNull(),
 		validTo: text('valid_to').notNull(),

@@ -15,6 +15,13 @@
       "when": 1783871319843,
       "tag": "0001_lumpy_mojo",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1783878112514,
+      "tag": "0002_silly_sunset_bain",
+      "breakpoints": true
     }
   ]
 }

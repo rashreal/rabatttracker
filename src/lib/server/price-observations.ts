@@ -27,6 +27,7 @@ export function recordOffers(
 				retailerId: offer.retailerId,
 				priceCents: offer.priceCents,
 				unitPriceText: offer.unitText,
+				description: offer.description,
 				currency: 'EUR',
 				validFrom: offer.validFrom,
 				validTo: offer.validTo,

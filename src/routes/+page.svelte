@@ -43,6 +43,7 @@
 							<strong>{item.product.displayName}</strong>
 						</a>
 						{#if item.product.matchBrand}<span class="hint"> · {item.product.matchBrand}</span>{/if}
+						{#if item.product.matchSizeHint}<span class="hint"> · {item.product.matchSizeHint}</span>{/if}
 					</div>
 					<button onclick={() => remove(item.product.id)} disabled={removingId === item.product.id}>
 						{removingId === item.product.id ? '…' : 'Entfernen'}
@@ -55,6 +56,9 @@
 							{formatEuro(item.currentOffers[0].priceCents)}
 						</span>
 						<span class="hint">bei {item.currentOffers[0].retailerName}</span>
+						{#if item.currentOffers[0].unitPriceText}
+							<span class="hint">· {item.currentOffers[0].unitPriceText}</span>
+						{/if}
 						{#if item.indicator}
 							<span class="badge {item.indicator.label === 'top' ? 'top' : item.indicator.label === 'good' ? 'good' : item.indicator.label === 'bad' ? 'bad' : 'normal'}">
 								{item.indicator.displayText}
@@ -64,6 +68,9 @@
 							<span class="hint">+{item.currentOffers.length - 1} weitere Angebote</span>
 						{/if}
 					</div>
+					{#if item.currentOffers[0].description}
+						<p class="hint" style="margin-top: 0.2rem">{item.currentOffers[0].description}</p>
+					{/if}
 					{#if item.indicator && item.indicator.avgCents != null}
 						<p class="hint">
 							Ø {formatEuro(item.indicator.avgCents)} · Min {formatEuro(item.indicator.minCents ?? 0)} ·

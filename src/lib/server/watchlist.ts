@@ -18,6 +18,7 @@ export interface NewWatchedProduct {
 	matchBrand: string | null;
 	matchProductId: number | null;
 	matchDescriptionKey: string;
+	matchSizeHint: string | null;
 }
 
 export function addWatchedProduct(input: NewWatchedProduct): WatchedProduct {
@@ -29,6 +30,7 @@ export function addWatchedProduct(input: NewWatchedProduct): WatchedProduct {
 			matchBrand: input.matchBrand,
 			matchProductId: input.matchProductId,
 			matchDescriptionKey: input.matchDescriptionKey,
+			matchSizeHint: input.matchSizeHint,
 			createdAt: new Date().toISOString()
 		})
 		.returning()
