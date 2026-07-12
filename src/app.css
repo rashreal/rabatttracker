@@ -1,0 +1,157 @@
+:root {
+	color-scheme: light dark;
+	--bg: #f5f6f8;
+	--surface: #ffffff;
+	--text: #1a1d21;
+	--muted: #6b7280;
+	--border: #e2e4e8;
+	--accent: #2563eb;
+	--accent-contrast: #ffffff;
+	--good: #16a34a;
+	--top: #0d9488;
+	--warn: #d97706;
+	--bad: #dc2626;
+	font-family:
+		system-ui,
+		-apple-system,
+		'Segoe UI',
+		Roboto,
+		sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--bg: #14161a;
+		--surface: #1d2025;
+		--text: #f2f3f5;
+		--muted: #9aa0aa;
+		--border: #2c3036;
+	}
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	background: var(--bg);
+	color: var(--text);
+}
+
+a {
+	color: var(--accent);
+}
+
+.page {
+	max-width: 640px;
+	margin: 0 auto;
+	padding: 1rem 1rem 5rem;
+}
+
+.card {
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: 12px;
+	padding: 1rem 1.25rem;
+	margin-bottom: 1rem;
+}
+
+label {
+	display: block;
+	font-weight: 600;
+	font-size: 0.9rem;
+	margin-bottom: 0.35rem;
+}
+
+input[type='text'],
+input[type='number'] {
+	width: 100%;
+	padding: 0.6rem 0.7rem;
+	border-radius: 8px;
+	border: 1px solid var(--border);
+	background: var(--bg);
+	color: var(--text);
+	font-size: 1rem;
+}
+
+button {
+	font-size: 0.95rem;
+	font-weight: 600;
+	padding: 0.6rem 1rem;
+	border-radius: 8px;
+	border: 1px solid var(--border);
+	background: var(--surface);
+	color: var(--text);
+	cursor: pointer;
+}
+
+button.primary {
+	background: var(--accent);
+	color: var(--accent-contrast);
+	border-color: var(--accent);
+}
+
+button:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+}
+
+.field-row {
+	display: flex;
+	gap: 0.5rem;
+	align-items: flex-end;
+}
+
+.field-row > div {
+	flex: 1;
+}
+
+.hint {
+	color: var(--muted);
+	font-size: 0.85rem;
+	margin-top: 0.35rem;
+}
+
+.badge {
+	display: inline-block;
+	padding: 0.2rem 0.55rem;
+	border-radius: 999px;
+	font-size: 0.78rem;
+	font-weight: 700;
+	color: white;
+}
+
+.badge.top {
+	background: var(--top);
+}
+.badge.good {
+	background: var(--good);
+}
+.badge.normal {
+	background: var(--muted);
+}
+.badge.bad {
+	background: var(--bad);
+}
+
+nav.tabs {
+	display: flex;
+	gap: 0.5rem;
+	max-width: 640px;
+	margin: 0 auto;
+	padding: 0.75rem 1rem 0;
+}
+
+nav.tabs a {
+	text-decoration: none;
+	color: var(--muted);
+	font-weight: 600;
+	padding: 0.4rem 0.1rem;
+	border-bottom: 2px solid transparent;
+}
+
+nav.tabs a.active {
+	color: var(--text);
+	border-color: var(--accent);
+}
