@@ -1,4 +1,5 @@
 import type { OfferProvider, OfferResult, ProductMatcher } from './types';
+import { withRetry } from '../retry';
 
 const HOME_URL = 'https://marktguru.de';
 // Trailing slash matters: new URL('offers/search', base) drops the last path
@@ -27,9 +28,11 @@ async function fetchKeys(): Promise<MarktguruKeys> {
 		return cachedKeys;
 	}
 
-	const res = await fetch(HOME_URL, {
-		headers: { 'User-Agent': BROWSER_USER_AGENT }
-	});
+	const res = await withRetry(() =>
+		fetch(HOME_URL, {
+			headers: { 'User-Agent': BROWSER_USER_AGENT }
+		})
+	);
 	if (!res.ok) {
 		throw new Error(`Marktguru homepage request failed: ${res.status}`);
 	}
@@ -109,13 +112,15 @@ async function searchRaw(query: string, zipCode: string, limit = 50): Promise<Of
 	url.searchParams.set('offset', '0');
 	url.searchParams.set('zipCode', zipCode);
 
-	const res = await fetch(url, {
-		headers: {
-			'x-apikey': keys.apiKey,
-			'x-clientkey': keys.clientKey,
-			'User-Agent': BROWSER_USER_AGENT
-		}
-	});
+	const res = await withRetry(() =>
+		fetch(url, {
+			headers: {
+				'x-apikey': keys.apiKey,
+				'x-clientkey': keys.clientKey,
+				'User-Agent': BROWSER_USER_AGENT
+			}
+		})
+	);
 	if (!res.ok) {
 		throw new Error(`Marktguru offers/search fehlgeschlagen: ${res.status}`);
 	}
@@ -130,7 +135,11 @@ export function descriptionKeyFor(brand: string | null, productName: string): st
 
 export const marktguruProvider: OfferProvider = {
 	async searchProducts(query, zipCode) {
-		return searchRaw(query, zipCode, 25);
+		// Higher limit than the scrape-time fetch (100) doesn't apply here since
+		// we want breadth for the human picking from suggestions - e.g. searching
+		// "Arla Skyr" should surface separate flavor variants ("Skyr Natur",
+		// "Skyr Vanille", ...) rather than only the single top-ranked hit.
+		return searchRaw(query, zipCode, 50);
 	},
 
 	async fetchOffersForProduct(matcher: ProductMatcher, zipCode: string) {

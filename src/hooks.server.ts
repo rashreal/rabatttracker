@@ -2,6 +2,7 @@ import cron from 'node-cron';
 import { building } from '$app/environment';
 import { runMigrations } from '$lib/server/db/migrate';
 import { runScrapeJob } from '$lib/server/jobs/scrape-offers';
+import '$lib/server/network-setup';
 
 if (!building) {
 	runMigrations();
