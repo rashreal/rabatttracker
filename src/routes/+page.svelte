@@ -52,39 +52,47 @@
 				</div>
 
 				{#if item.currentOffers.length > 0}
-					<div style="margin-top: 0.6rem; display:flex; align-items:center; gap:0.6rem; flex-wrap: wrap">
-						<span style="font-size:1.3rem; font-weight:700">
-							{formatEuro(item.currentOffers[0].priceCents)}
-						</span>
-						<span class="hint">bei {item.currentOffers[0].retailerName}</span>
-						{#if item.currentOffers[0].unitPriceText}
-							<span class="hint">· {item.currentOffers[0].unitPriceText}</span>
-						{/if}
-						{#if item.indicator}
-							<span class="badge {item.indicator.label === 'top' ? 'top' : item.indicator.label === 'good' ? 'good' : item.indicator.label === 'bad' ? 'bad' : 'normal'}">
-								{item.indicator.displayText}
-							</span>
-						{/if}
-						{#if item.currentOffers.length > 1}
-							<span class="hint">+{item.currentOffers.length - 1} weitere Angebote</span>
-						{/if}
+					<div style="margin-top: 0.6rem; display: flex; flex-direction: column; gap: 0.6rem">
+						{#each item.currentOffers as offer, i (offer.id)}
+							<div
+								style={i > 0 ? 'padding-top: 0.6rem; border-top: 1px solid var(--border)' : ''}
+							>
+								<div style="display:flex; align-items:center; gap:0.6rem; flex-wrap: wrap">
+									<span style="font-size:1.3rem; font-weight:700">
+										{formatEuro(offer.priceCents)}
+									</span>
+									<span class="hint">bei {offer.retailerName}</span>
+									{#if offer.unitPriceText}
+										<span class="hint">· {offer.unitPriceText}</span>
+									{/if}
+									{#if i === 0 && item.indicator}
+										<span
+											class="badge {item.indicator.label === 'top'
+												? 'top'
+												: item.indicator.label === 'good'
+													? 'good'
+													: item.indicator.label === 'bad'
+														? 'bad'
+														: 'normal'}"
+										>
+											{item.indicator.displayText}
+										</span>
+									{/if}
+								</div>
+								<p class="hint" style="margin-top: 0.2rem">
+									Gültig: <strong>{formatDateRange(offer.validFrom, offer.validTo)}</strong>
+									{#if daysUntil(offer.validFrom) > 0}
+										<strong>(startet erst in {daysUntil(offer.validFrom)} Tagen)</strong>
+									{/if}
+								</p>
+								{#if offer.description}
+									<p class="hint" style="margin-top: 0.2rem">{offer.description}</p>
+								{/if}
+							</div>
+						{/each}
 					</div>
-					<p class="hint" style="margin-top: 0.2rem">
-						Gültig: <strong
-							>{formatDateRange(
-								item.currentOffers[0].validFrom,
-								item.currentOffers[0].validTo
-							)}</strong
-						>
-						{#if daysUntil(item.currentOffers[0].validFrom) > 0}
-							<strong>(startet erst in {daysUntil(item.currentOffers[0].validFrom)} Tagen)</strong>
-						{/if}
-					</p>
-					{#if item.currentOffers[0].description}
-						<p class="hint" style="margin-top: 0.2rem">{item.currentOffers[0].description}</p>
-					{/if}
 					{#if item.indicator && item.indicator.avgCents != null}
-						<p class="hint">
+						<p class="hint" style="margin-top: 0.6rem">
 							Ø {formatEuro(item.indicator.avgCents)} · Min {formatEuro(item.indicator.minCents ?? 0)} ·
 							Max {formatEuro(item.indicator.maxCents ?? 0)} (letzte 180 Tage, {item.indicator.sampleCount}
 							Beobachtungen)
