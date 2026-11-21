@@ -70,6 +70,21 @@ docker compose up -d --build
 Die App läuft danach auf Port 3000, die SQLite-Datei liegt persistent unter
 `./data/rabatttracker.db` (Docker-Volume-Mount, übersteht Container-Neustarts/-Updates).
 
+### Subpfad-Deployment (optional)
+
+Wenn die App nicht unter `/` sondern unter einem Pfad wie `/rabatttracker/` laufen
+soll (z.B. hinter einem Reverse-Proxy), `BASE_PATH` in `docker-compose.yml` setzen:
+
+```yaml
+build:
+  args:
+    BASE_PATH: /rabatttracker
+```
+
+Der Wert wird beim Build eingebaut und muss mit dem Pfad übereinstimmen, unter dem
+der Reverse Proxy die App weiterleitet — **ohne** abschließenden Schrägstrich.
+Ohne diesen Eintrag (Standardwert `""`) läuft die App unter `/`.
+
 Der tägliche Angebots-Abgleich läuft automatisch per `node-cron` im selben Container
 (kein separater Cron-Container nötig) - Uhrzeit ist aktuell fix auf 06:00 Uhr
 Serverzeit (`src/hooks.server.ts`).

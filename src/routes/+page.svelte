@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import { formatDateRange, daysUntil } from '$lib/format';
+	import { base } from '$app/paths';
 
 	let { data }: { data: PageData } = $props();
 	let feed = $state(data.feed);
@@ -13,7 +14,7 @@
 	async function remove(id: number) {
 		removingId = id;
 		try {
-			const res = await fetch(`/api/watchlist/${id}`, { method: 'DELETE' });
+			const res = await fetch(`${base}/api/watchlist/${id}`, { method: 'DELETE' });
 			if (res.ok) {
 				feed = feed.filter((f) => f.product.id !== id);
 			}
@@ -33,14 +34,14 @@
 	{#if feed.length === 0}
 		<div class="card">
 			<p>Noch keine Produkte beobachtet.</p>
-			<a href="/watchlist/add"><button class="primary">Produkt hinzufügen</button></a>
+			<a href="{base}/watchlist/add"><button class="primary">Produkt hinzufügen</button></a>
 		</div>
 	{:else}
 		{#each feed as item (item.product.id)}
 			<div class="card">
 				<div style="display:flex; justify-content: space-between; align-items:flex-start; gap: 1rem">
 					<div>
-						<a href={`/product/${item.product.id}`} style="text-decoration:none; color: inherit">
+						<a href="{base}/product/{item.product.id}" style="text-decoration:none; color: inherit">
 							<strong>{item.product.displayName}</strong>
 						</a>
 						{#if item.product.matchBrand}<span class="hint"> · {item.product.matchBrand}</span>{/if}
@@ -103,6 +104,6 @@
 				{/if}
 			</div>
 		{/each}
-		<a href="/watchlist/add"><button>+ Weiteres Produkt</button></a>
+		<a href="{base}/watchlist/add"><button>+ Weiteres Produkt</button></a>
 	{/if}
 </div>

@@ -1,6 +1,9 @@
 services:
   rabatttracker:
-    build: .
+    build:
+      context: .
+      args:
+        BASE_PATH: ""   # z.B. /rabatttracker — muss mit dem Reverse-Proxy-Pfad übereinstimmen
     container_name: rabatttracker
     restart: unless-stopped
     ports:

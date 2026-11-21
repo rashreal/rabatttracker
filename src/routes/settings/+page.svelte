@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
+	import { base } from '$app/paths';
 
 	let { data }: { data: PageData } = $props();
 
@@ -55,7 +56,7 @@
 				throw new Error('Benachrichtigungs-Berechtigung wurde nicht erteilt.');
 			}
 
-			const keyRes = await fetch('/api/push/public-key');
+			const keyRes = await fetch(`${base}/api/push/public-key`);
 			const { publicKey } = await keyRes.json();
 			if (!publicKey) {
 				throw new Error(
@@ -63,7 +64,7 @@
 				);
 			}
 
-			const reg = await navigator.serviceWorker.register('/service-worker.js');
+			const reg = await navigator.serviceWorker.register(`${base}/service-worker.js`);
 			await navigator.serviceWorker.ready;
 			const sub = await reg.pushManager.subscribe({
 				userVisibleOnly: true,
@@ -71,7 +72,7 @@
 			});
 			const subJson = sub.toJSON();
 
-			await fetch('/api/push/subscribe', {
+			await fetch(`${base}/api/push/subscribe`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -95,7 +96,7 @@
 		sendingTestPush = true;
 		showStatus('');
 		try {
-			const res = await fetch('/api/push/test', { method: 'POST' });
+			const res = await fetch(`${base}/api/push/test`, { method: 'POST' });
 			if (!res.ok) throw new Error((await res.json()).message ?? 'Test-Push fehlgeschlagen');
 			const result = await res.json();
 			showStatus(`Test-Push gesendet an ${result.sent} Gerät(e).`);
@@ -110,7 +111,7 @@
 		scraping = true;
 		showStatus('');
 		try {
-			const res = await fetch('/api/jobs/run-scrape', { method: 'POST' });
+			const res = await fetch(`${base}/api/jobs/run-scrape`, { method: 'POST' });
 			const summary = await res.json();
 			showStatus(
 				summary.success
@@ -118,7 +119,7 @@
 					: `Scrape mit Fehlern: ${summary.errors.join('; ')}`,
 				!summary.success
 			);
-			const lastRunRes = await fetch('/api/jobs/last-run');
+			const lastRunRes = await fetch(`${base}/api/jobs/last-run`);
 			lastScrapeRun = await lastRunRes.json();
 		} catch (e) {
 			showStatus(e instanceof Error ? e.message : 'Scrape fehlgeschlagen', true);
@@ -141,7 +142,7 @@
 		showStatus('');
 		try {
 			const query = [homeAddressText, homeZipCode].filter(Boolean).join(', ');
-			const res = await fetch('/api/geocode', {
+			const res = await fetch(`${base}/api/geocode`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ query })
@@ -184,7 +185,7 @@
 		saving = true;
 		showStatus('');
 		try {
-			const res = await fetch('/api/settings', {
+			const res = await fetch(`${base}/api/settings`, {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({

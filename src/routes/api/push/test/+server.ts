@@ -1,13 +1,14 @@
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { sendPushToAll } from '$lib/server/push';
+import { base } from '$app/paths';
 
 export const POST: RequestHandler = async () => {
 	try {
 		const result = await sendPushToAll({
 			title: 'RabattTracker',
 			body: 'Push-Benachrichtigungen funktionieren! 🎉',
-			url: '/'
+			url: base + '/'
 		});
 		return json(result);
 	} catch (e) {
