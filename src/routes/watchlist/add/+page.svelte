@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { formatDateRange, daysUntil } from '$lib/format';
+	import { base } from '$app/paths';
 
 	interface SearchResult {
 		sourceOfferId: string;
@@ -86,7 +87,7 @@
 				.map((s) => s.trim())
 				.filter(Boolean)
 				.join(' ');
-			const res = await fetch(`/api/marktguru/search?q=${encodeURIComponent(q)}`);
+			const res = await fetch(`${base}/api/marktguru/search?q=${encodeURIComponent(q)}`);
 			if (!res.ok) {
 				const body = await res.json().catch(() => ({ message: 'Suche fehlgeschlagen' }));
 				throw new Error(body.message ?? 'Suche fehlgeschlagen');
@@ -104,7 +105,7 @@
 	async function addFromSearch(group: ProductGroup) {
 		addingKey = group.key;
 		try {
-			const res = await fetch('/api/watchlist', {
+			const res = await fetch(`${base}/api/watchlist`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -133,7 +134,7 @@
 		manualAdding = true;
 		manualError = '';
 		try {
-			const res = await fetch('/api/watchlist', {
+			const res = await fetch(`${base}/api/watchlist`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({

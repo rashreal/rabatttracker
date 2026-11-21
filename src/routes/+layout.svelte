@@ -2,6 +2,7 @@
 	import '../app.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import { page } from '$app/state';
+	import { base } from '$app/paths';
 
 	let { children } = $props();
 
@@ -15,8 +16,8 @@
 <svelte:head>
 	<link rel="icon" href={favicon} />
 	<meta name="theme-color" content="#2563eb" />
-	<link rel="manifest" href="/manifest.webmanifest" />
-	<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+	<link rel="manifest" href="{base}/manifest.webmanifest" />
+	<link rel="apple-touch-icon" href="{base}/icons/apple-touch-icon.png" />
 	<meta name="apple-mobile-web-app-capable" content="yes" />
 	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 	<meta name="apple-mobile-web-app-title" content="RabattTracker" />
@@ -24,7 +25,7 @@
 
 <nav class="tabs">
 	{#each tabs as tab (tab.href)}
-		<a href={tab.href} class:active={page.url.pathname === tab.href}>{tab.label}</a>
+		<a href="{base}{tab.href}" class:active={page.url.pathname === base + tab.href}>{tab.label}</a>
 	{/each}
 </nav>
 

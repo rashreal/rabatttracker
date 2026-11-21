@@ -29,12 +29,14 @@ self.addEventListener('push', (event) => {
 		payload = { title: 'RabattTracker', body: event.data.text() };
 	}
 
+	const scope = self.registration.scope;
+	const iconUrl = new URL('icons/icon-192.png', scope).href;
 	event.waitUntil(
 		self.registration.showNotification(payload.title, {
 			body: payload.body,
-			icon: '/icons/icon-192.png',
-			badge: '/icons/icon-192.png',
-			data: { url: payload.url ?? '/' }
+			icon: iconUrl,
+			badge: iconUrl,
+			data: { url: payload.url ?? scope }
 		})
 	);
 });

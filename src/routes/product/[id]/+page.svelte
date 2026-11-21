@@ -12,6 +12,8 @@
 	} from 'chart.js';
 	import type { PageData } from './$types';
 	import { formatDateRange } from '$lib/format';
+	import { base } from '$app/paths';
+	import { goto } from '$app/navigation';
 
 	ChartJS.register(Title, Tooltip, Legend, LineElement, LinearScale, PointElement, CategoryScale);
 
@@ -48,8 +50,8 @@
 	let removing = $state(false);
 	async function remove() {
 		removing = true;
-		const res = await fetch(`/api/watchlist/${data.product.id}`, { method: 'DELETE' });
-		if (res.ok) window.location.href = '/';
+		const res = await fetch(`${base}/api/watchlist/${data.product.id}`, { method: 'DELETE' });
+		if (res.ok) goto(base + '/');
 		else removing = false;
 	}
 </script>
@@ -59,7 +61,7 @@
 </svelte:head>
 
 <div class="page">
-	<a href="/">&larr; Zurück</a>
+	<a href="{base}/">&larr; Zurück</a>
 	<h1>{data.product.displayName}</h1>
 	{#if data.product.matchBrand || data.product.matchSizeHint}
 		<p class="hint">

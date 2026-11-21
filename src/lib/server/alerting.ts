@@ -6,6 +6,7 @@ import { sendPushToAll } from './push';
 import type { WatchedProduct } from './watchlist';
 import type { PriceObservation } from './price-observations';
 import type { UserSettings } from './settings';
+import { base } from '$app/paths';
 
 /**
  * Decides whether newly-inserted price observations warrant a push
@@ -56,7 +57,7 @@ export async function maybeNotify(
 			await sendPushToAll({
 				title: `${product.displayName}: ${indicator.displayText}`,
 				body: `${(obs.priceCents / 100).toFixed(2)} € bei ${obs.retailerName}`,
-				url: `/product/${product.id}`
+				url: `${base}/product/${product.id}`
 			});
 		} catch (e) {
 			console.error('Push notification failed', e);
